@@ -1,0 +1,7 @@
+Flask
+Flask-SocketIO
+eventlet
+
+pylint
+pep8
+mypy-lang
