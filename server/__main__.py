@@ -40,6 +40,11 @@ def notify():
     return "Ok!"
 
 
+@socketio.on('message')
+def on_message(data):
+    print("MESSAGE", data)
+
+
 @socketio.on('connect')
 def connect():
     """
