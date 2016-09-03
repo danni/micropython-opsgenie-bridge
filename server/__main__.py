@@ -27,15 +27,15 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/notify')
-def notify():
+@app.route('/notify/<colour>')
+def notify(colour):
     """
     HTTP request called by the webhook.
 
     Emits a WebSocket event to connected clients.
     """
     print("Notify")
-    socketio.emit('alert', {'count': 12})
+    socketio.emit('alert', {'status': colour})
 
     return "Ok!"
 
@@ -51,7 +51,7 @@ def connect():
     WebSocket client connected.
     """
     print("New connection")
-    socketio.send("Welcome, friend")
+    socketio.emit('alert', {'status': 'green'})
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 AMPY := ampy
 
 SOURCES = \
-	uclient/main.py \
+	main.py \
 	$(NULL)
 
 __deploy__/%.py: %.py

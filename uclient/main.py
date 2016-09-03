@@ -1,21 +1,37 @@
 import time
 import logging
-import machine
+from machine import Pin, PWM
 
 import usocketio.client
 
 logging.basicConfig(level=logging.DEBUG)
 
+blue_led = PWM(Pin(14))
+blue_led.freq(60)
+green_led = PWM(Pin(12))
+green_led.freq(60)
+red_led = PWM(Pin(13))
+red_led.freq(60)
+
+
+def set_colour(r, g, b):
+    """
+    Set the colour as a hex triplet
+
+    Common anode RGB LED, high is off
+    """
+
+    red_led.duty((0xff - r) << 2)
+    green_led.duty((0xff - g) << 2)
+    blue_led.duty((0xff - b) << 2)
+
+set_colour(0, 0, 0)
+
+ack_btn = Pin(5)
+ack_btn.init(Pin.IN, Pin.PULL_UP)
+
 
 def main():
-    ready_led = machine.Pin(12)
-    ready_led.init(machine.Pin.OUT)
-
-    alert_led = machine.Pin(13)
-    alert_led.init(machine.Pin.OUT)
-
-    ack_btn = machine.Pin(14)
-    ack_btn.init(machine.Pin.IN, machine.Pin.PULL_UP)
     acknowledge = [False]  # flag to set in the interrupt handler
 
     with usocketio.client.connect('http://192.168.1.10:5000/') as socketio:
@@ -24,15 +40,20 @@ def main():
         def button_interrupt(pin):
             acknowledge[0] = True
 
-        ack_btn.irq(trigger=machine.Pin.IRQ_FALLING,
+        ack_btn.irq(trigger=Pin.IRQ_FALLING,
                     handler=button_interrupt)
 
         @socketio.on('alert')
         def on_alert(message):
-            print("alert", message)
-            pin13.high()
-            time.sleep(0.3)
-            pin13.low()
+            STATUSES = {
+                'green': (0, 0xff, 0),
+                'red': (0xff, 0, 0),
+                'orange': (0xff, 0x45, 0),
+            }
+            try:
+                set_colour(*STATUSES[message['status']])
+            except KeyError:
+                print("Unknown colour:", message['status'])
 
         @socketio.at_interval(1)
         def at_interval():
@@ -41,9 +62,15 @@ def main():
                 acknowledge[0] = False
 
         try:
-            ready_led.high()
+            set_colour(0, 0, 0xff)
             socketio.run_forever()
         finally:
-            ready_led.low()
+            set_colour(0, 0, 0)
 
-main()
+
+while True:
+    try:
+        main()
+    except OSError:
+        print("Retry in 10")
+        time.sleep(10)
