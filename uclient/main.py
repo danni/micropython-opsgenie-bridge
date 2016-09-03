@@ -58,6 +58,7 @@ def main():
         @socketio.at_interval(1)
         def at_interval():
             if acknowledge[0]:
+                print("Acknowledge pressed")
                 socketio.send('acknowledge')
                 acknowledge[0] = False
 
