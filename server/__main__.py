@@ -35,7 +35,7 @@ def notify():
     Emits a WebSocket event to connected clients.
     """
     print("Notify")
-    socketio.emit('alert')
+    socketio.emit('alert', {'count': 12})
 
     return "Ok!"
 
@@ -46,8 +46,9 @@ def connect():
     WebSocket client connected.
     """
     print("New connection")
+    socketio.send("Welcome, friend")
 
 
 if __name__ == '__main__':
     print("Starting server")
-    socketio.run(app, debug=True, use_reloader=True)
+    socketio.run(app, host='0.0.0.0', debug=True, use_reloader=True)
